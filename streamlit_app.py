@@ -3,8 +3,18 @@
 import streamlit as st
 import requests
 import json
+import random
 from datetime import datetime
 from database import get_statistics, get_decision_distribution, get_risk_scores, get_all_applications, export_to_json, export_to_csv
+
+# Helper functions
+def generate_applicant_id():
+    """Generate random applicant ID."""
+    return f"APP-{random.randint(100000, 999999)}"
+
+def convert_age_to_months(years: int, months: int) -> int:
+    """Convert years and months to total months."""
+    return years * 12 + months
 
 st.set_page_config(page_title="TD Bank - Agentic Loan Approval", layout="wide")
 
@@ -151,7 +161,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### ⚙️ Configuration")
     st.markdown("---")
-    api_url = st.text_input("API URL", value="http://localhost:8000")
+    api_url = st.text_input("API URL", value="http://localhost:1001")
     st.markdown("---")
     st.markdown("""
     <div style='background-color: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #2d5016;'>
@@ -174,20 +184,68 @@ with tab1:
 
     with col1:
         st.markdown("#### 📋 Applicant Information")
-        applicant_id = st.text_input("Applicant ID", value="APP-001")
-        age = st.slider("Age", min_value=18, max_value=80, value=35)
+
+        # Applicant ID with regenerate button
+        col_id1, col_id2 = st.columns([3, 1])
+        with col_id1:
+            applicant_id = st.text_input("Applicant ID", value=generate_applicant_id(), key="app_id")
+        with col_id2:
+            if st.button("🔄 New", key="regen_id"):
+                st.rerun()
+
+        # Age (Years & Months)
+        col_age1, col_age2 = st.columns(2)
+        with col_age1:
+            age_years = st.number_input("Age (Years)", min_value=18, max_value=80, value=35)
+        with col_age2:
+            age_months = st.selectbox("Months", list(range(12)), index=0)
+
+        age_total_months = convert_age_to_months(age_years, age_months)
+
         income = st.number_input("Annual Income ($)", min_value=20000.0, value=75000.0, step=5000.0)
-        employment_type = st.selectbox("Employment Type", ["Employed", "Self-employed", "Business Owner", "Retired"])
+
+        # Employment Type with subcategories
+        employment_main = st.selectbox("Employment Type", ["Employed", "Self-employed", "Business Owner", "Retired"])
+
+        employment_type = employment_main
+        if employment_main == "Self-employed":
+            employment_sub = st.selectbox("Self-employed Category", ["Agriculture", "Business"])
+            employment_type = f"Self-employed ({employment_sub})"
 
     with col2:
-        st.markdown("#### 💰 Loan Details")
+        st.markdown("#### 💰 Loan Details & Liabilities")
         credit_score = st.slider("Credit Score", min_value=300, max_value=850, value=720)
         loan_amount = st.number_input("Loan Amount ($)", min_value=10000.0, value=250000.0, step=10000.0)
-        tenure_months = st.slider("Tenure (months)", min_value=6, max_value=360, value=180)
-        existing_liabilities = st.number_input("Existing Liabilities ($)", min_value=0.0, value=50000.0, step=5000.0)
+
+        # Tenure (Predefined Options)
+        tenure_options = [5, 10, 15, 20, 25, 30, "Random"]
+        tenure_selected = st.selectbox("Tenure (Years)", tenure_options, index=5)
+
+        if tenure_selected == "Random":
+            tenure_years = random.choice([5, 10, 15, 20, 25, 30])
+        else:
+            tenure_years = tenure_selected
+
+        tenure_months = tenure_years * 12
+
+        st.markdown("**Existing Liabilities:**")
+
+        # Liability breakdown
+        col_liab1, col_liab2 = st.columns(2)
+        with col_liab1:
+            land_value = st.number_input("Land Value ($)", min_value=0.0, value=0.0, step=10000.0, key="land")
+        with col_liab2:
+            car_value = st.number_input("Car Value ($)", min_value=0.0, value=0.0, step=5000.0, key="car")
+
+        other_value = st.number_input("Other Liabilities ($)", min_value=0.0, value=0.0, step=5000.0, key="other")
+
+        existing_liabilities = land_value + car_value + other_value
+
+        # Display total
+        st.metric("Total Liabilities", f"${existing_liabilities:,.2f}")
 
     st.markdown("#### 📍 Location")
-    location = st.text_input("Location", value="New York")
+    location = st.selectbox("Location", ["India"], index=0)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -201,7 +259,7 @@ with tab1:
             try:
                 payload = {
                     "applicant_id": applicant_id,
-                    "age": age,
+                    "age": age_total_months // 12,
                     "income": income,
                     "employment_type": employment_type,
                     "credit_score": credit_score,
@@ -235,12 +293,37 @@ with tab1:
                         status_class = "status-review"
                         decision_icon = "⚠️"
 
+                    # Display Application Profile
+                    st.markdown("<div class='section-header'>📋 Application Profile</div>", unsafe_allow_html=True)
+                    col_prof1, col_prof2 = st.columns(2)
+
+                    with col_prof1:
+                        st.write(f"**Applicant ID:** {applicant_id}")
+                        st.write(f"**Age:** {age_years} years {age_months} months")
+                        st.write(f"**Employment:** {employment_type}")
+                        st.write(f"**Credit Score:** {credit_score}")
+
+                    with col_prof2:
+                        st.write(f"**Loan Amount:** ${loan_amount:,.2f}")
+                        st.write(f"**Tenure:** {tenure_years} years")
+                        st.write(f"**Location:** {location}")
+                        if existing_liabilities > 0:
+                            st.write(f"**Liabilities:** ${existing_liabilities:,.2f}")
+                            if land_value > 0:
+                                st.write(f"  └─ Land: ${land_value:,.2f}")
+                            if car_value > 0:
+                                st.write(f"  └─ Car: ${car_value:,.2f}")
+                            if other_value > 0:
+                                st.write(f"  └─ Other: ${other_value:,.2f}")
+
+                    st.divider()
+
                     st.markdown(f"""
                     <div class='result-box {box_class}'>
                         <h2 style='margin-top: 0; text-align: center;'>{decision_icon} <span class='{status_class}'>{decision}</span></h2>
                         <hr style='border: 2px solid currentColor;'>
                         <table style='width: 100%;'>
-                            <tr><td><strong>📊 Risk Score:</strong></td><td>{result['risk_score']}/100</td></tr>
+                            <tr><td><strong>📊 Risk Score:</strong></td><td>{result['risk_score']}/1000</td></tr>
                             <tr><td><strong>🎯 Confidence Level:</strong></td><td>{result['confidence_level']}</td></tr>
                             <tr><td><strong>🆔 Case ID:</strong></td><td>{result['case_id']}</td></tr>
                             <tr><td><strong>⏰ Timestamp:</strong></td><td>{result['timestamp']}</td></tr>
@@ -259,7 +342,7 @@ with tab1:
                     st.error(f"❌ API Error: {response.status_code} - {response.text}")
 
             except requests.exceptions.ConnectionError:
-                st.error("❌ Cannot connect to API. Make sure FastAPI service is running on http://localhost:8000")
+                st.error("❌ Cannot connect to API. Make sure FastAPI service is running on http://localhost:1001")
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
 

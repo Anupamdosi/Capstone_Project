@@ -149,36 +149,36 @@ class LoanDecisionAgent:
 
     @staticmethod
     def _calculate_risk_score(applicant_profile: dict, financial_risk: dict) -> float:
-        """Calculate overall risk score (0-100, higher = riskier)."""
-        score = 50
+        """Calculate overall risk score (0-1000, where 767 is typical medium-high risk)."""
+        score = 500
 
         income_stability = applicant_profile["income_stability_score"]
-        score -= (income_stability - 50) * 0.2
+        score -= (income_stability - 50) * 5
 
         if financial_risk["credit_score_risk_level"] == "Low":
-            score -= 15
+            score -= 150
         elif financial_risk["credit_score_risk_level"] == "Medium":
-            score += 5
+            score += 50
         else:
-            score += 20
+            score += 200
 
         dti = financial_risk["debt_to_income_ratio"]
         if dti < 0.3:
-            score -= 10
+            score -= 100
         elif dti > 0.5:
-            score += 15
+            score += 150
 
         if financial_risk["loan_amount_risk"] == "High":
-            score += 10
+            score += 100
 
-        return max(0, min(100, score))
+        return max(0, min(1000, score))
 
     @staticmethod
     def _make_decision(risk_score: float, financial_risk: dict) -> tuple:
-        """Make approval decision based on risk score."""
-        if risk_score < 30:
+        """Make approval decision based on risk score (0-1000 scale)."""
+        if risk_score < 300:
             return "Approved", "High"
-        elif risk_score < 60:
+        elif risk_score < 600:
             return "Requires Manual Review", "Medium"
         else:
             return "Rejected", "High"
