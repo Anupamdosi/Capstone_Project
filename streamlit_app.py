@@ -161,7 +161,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### ⚙️ Configuration")
     st.markdown("---")
-    api_url = st.text_input("API URL", value="http://localhost:1001")
+    api_url = st.text_input("API URL", value="http://localhost:8000")
     st.markdown("---")
     st.markdown("""
     <div style='background-color: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #2d5016;'>
@@ -342,7 +342,7 @@ with tab1:
                     st.error(f"❌ API Error: {response.status_code} - {response.text}")
 
             except requests.exceptions.ConnectionError:
-                st.error("❌ Cannot connect to API. Make sure FastAPI service is running on http://localhost:1001")
+                st.error("❌ Cannot connect to API. Make sure FastAPI service is running on http://localhost:8000")
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
 

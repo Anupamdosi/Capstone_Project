@@ -4,7 +4,12 @@
       "Skill(run)",
       "Skill(run:*)",
       "Bash(ssh-keyscan -H github.com)",
-      "Bash(ssh -T git@github.com)"
+      "Bash(ssh -T git@github.com)",
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(pkill -f streamlit)",
+      "Bash(pkill -f fastapi_service)",
+      "Bash(curl -s http://localhost:8501)"
     ]
   }
 }
