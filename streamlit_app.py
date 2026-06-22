@@ -202,7 +202,7 @@ with tab1:
 
         age_total_months = convert_age_to_months(age_years, age_months)
 
-        income = st.number_input("Annual Income ($)", min_value=20000.0, value=75000.0, step=5000.0)
+        income = st.number_input("Annual Income (₹)", min_value=200000.0, value=750000.0, step=50000.0)
 
         # Employment Type with subcategories
         employment_main = st.selectbox("Employment Type", ["Employed", "Self-employed", "Business Owner", "Retired"])
@@ -215,7 +215,7 @@ with tab1:
     with col2:
         st.markdown("#### 💰 Loan Details & Liabilities")
         credit_score = st.slider("Credit Score", min_value=300, max_value=850, value=720)
-        loan_amount = st.number_input("Loan Amount ($)", min_value=10000.0, value=250000.0, step=10000.0)
+        loan_amount = st.number_input("Loan Amount (₹)", min_value=100000.0, value=2500000.0, step=100000.0)
 
         # Tenure (Predefined Options)
         tenure_options = [5, 10, 15, 20, 25, 30, "Random"]
@@ -233,11 +233,11 @@ with tab1:
         # Liability breakdown
         col_liab1, col_liab2 = st.columns(2)
         with col_liab1:
-            land_value = st.number_input("Land Value ($)", min_value=0.0, value=0.0, step=10000.0, key="land")
+            land_value = st.number_input("Land Value (₹)", min_value=0.0, value=0.0, step=100000.0, key="land")
         with col_liab2:
-            car_value = st.number_input("Car Value ($)", min_value=0.0, value=0.0, step=5000.0, key="car")
+            car_value = st.number_input("Car Value (₹)", min_value=0.0, value=0.0, step=50000.0, key="car")
 
-        other_value = st.number_input("Other Liabilities ($)", min_value=0.0, value=0.0, step=5000.0, key="other")
+        other_value = st.number_input("Other Liabilities (₹)", min_value=0.0, value=0.0, step=50000.0, key="other")
 
         existing_liabilities = land_value + car_value + other_value
 
@@ -304,17 +304,17 @@ with tab1:
                         st.write(f"**Credit Score:** {credit_score}")
 
                     with col_prof2:
-                        st.write(f"**Loan Amount:** ${loan_amount:,.2f}")
+                        st.write(f"**Loan Amount:** ₹{loan_amount:,.0f}")
                         st.write(f"**Tenure:** {tenure_years} years")
                         st.write(f"**Location:** {location}")
                         if existing_liabilities > 0:
-                            st.write(f"**Liabilities:** ${existing_liabilities:,.2f}")
+                            st.write(f"**Liabilities:** ₹{existing_liabilities:,.0f}")
                             if land_value > 0:
-                                st.write(f"  └─ Land: ${land_value:,.2f}")
+                                st.write(f"  └─ Land: ₹{land_value:,.0f}")
                             if car_value > 0:
-                                st.write(f"  └─ Car: ${car_value:,.2f}")
+                                st.write(f"  └─ Car: ₹{car_value:,.0f}")
                             if other_value > 0:
-                                st.write(f"  └─ Other: ${other_value:,.2f}")
+                                st.write(f"  └─ Other: ₹{other_value:,.0f}")
 
                     st.divider()
 
@@ -332,6 +332,137 @@ with tab1:
                         </table>
                     </div>
                     """, unsafe_allow_html=True)
+
+                    # Display Analysis Graphs
+                    st.markdown("<div class='section-header'>📊 Financial Analysis</div>", unsafe_allow_html=True)
+
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+
+                    col_graph1, col_graph2 = st.columns(2)
+
+                    # Graph 1: Financial Breakdown
+                    with col_graph1:
+                        st.markdown("**💰 Financial Breakdown**")
+                        fig, ax = plt.subplots(figsize=(8, 6))
+
+                        categories = ["Annual Income", "Loan Amount", "Liabilities"]
+                        values = [income, loan_amount, existing_liabilities]
+                        colors = ["#2d5016", "#003366", "#8B0000"]
+
+                        bars = ax.bar(categories, values, color=colors, edgecolor="black", linewidth=2)
+
+                        # Add value labels on bars
+                        for bar, value in zip(bars, values):
+                            height = bar.get_height()
+                            ax.text(
+                                bar.get_x() + bar.get_width()/2.,
+                                height,
+                                f"₹{value:,.0f}",
+                                ha="center",
+                                va="bottom",
+                                fontsize=10,
+                                fontweight="bold"
+                            )
+
+                        ax.set_ylabel("Amount (₹)", fontweight="bold")
+                        ax.set_title("Financial Profile", fontweight="bold", fontsize=12)
+                        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"₹{x/100000:.0f}L"))
+                        plt.xticks(rotation=15)
+                        plt.tight_layout()
+                        st.pyplot(fig)
+
+                    # Graph 2: Risk Score Gauge
+                    with col_graph2:
+                        st.markdown("**📈 Risk Assessment**")
+                        fig, ax = plt.subplots(figsize=(8, 6))
+
+                        risk_score = result['risk_score']
+                        risk_percentage = (risk_score / 1000) * 100
+
+                        # Color based on risk
+                        if risk_score < 300:
+                            color = "#2d5016"  # Green - Low Risk
+                            status = "Low Risk"
+                        elif risk_score < 600:
+                            color = "#ff8c00"  # Orange - Medium Risk
+                            status = "Medium Risk"
+                        else:
+                            color = "#8B0000"  # Red - High Risk
+                            status = "High Risk"
+
+                        # Create gauge-like bar
+                        ax.barh(0, risk_percentage, color=color, height=0.5, edgecolor="black", linewidth=2)
+                        ax.set_xlim(0, 100)
+                        ax.set_ylim(-1, 1)
+                        ax.set_xlabel("Risk Percentage (%)", fontweight="bold")
+                        ax.set_title(f"Risk Score: {risk_score}/1000 - {status}", fontweight="bold", fontsize=12)
+                        ax.set_yticks([])
+                        ax.grid(axis="x", alpha=0.3)
+
+                        # Add percentage text
+                        ax.text(risk_percentage/2, 0, f"{risk_percentage:.1f}%",
+                               va="center", ha="center", fontsize=12, fontweight="bold", color="white")
+
+                        plt.tight_layout()
+                        st.pyplot(fig)
+
+                    # Graph 3: DTI and Affordability Analysis
+                    st.markdown("**📊 Loan Affordability Analysis**")
+                    col_graph3, col_graph4 = st.columns(2)
+
+                    with col_graph3:
+                        # DTI Ratio Breakdown
+                        fig, ax = plt.subplots(figsize=(8, 6))
+
+                        monthly_income = income / 12
+                        monthly_payment = loan_amount / (tenure_years * 12)
+                        total_monthly_debt = monthly_payment + (existing_liabilities / 12)
+                        dti_ratio = (total_monthly_debt / monthly_income) * 100 if monthly_income > 0 else 0
+
+                        categories = ["Monthly Income", "Loan Payment", "Liability Payment"]
+                        values = [monthly_income, monthly_payment, existing_liabilities / 12]
+                        colors = ["#2d5016", "#003366", "#ff6b6b"]
+
+                        bars = ax.bar(categories, values, color=colors, edgecolor="black", linewidth=2)
+
+                        for bar, value in zip(bars, values):
+                            height = bar.get_height()
+                            ax.text(
+                                bar.get_x() + bar.get_width()/2.,
+                                height,
+                                f"₹{value:,.0f}",
+                                ha="center",
+                                va="bottom",
+                                fontsize=9,
+                                fontweight="bold"
+                            )
+
+                        ax.set_ylabel("Monthly Amount (₹)", fontweight="bold")
+                        ax.set_title("Monthly Payment Analysis", fontweight="bold", fontsize=12)
+                        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f"₹{x/1000:.0f}K"))
+                        plt.xticks(rotation=15)
+                        plt.tight_layout()
+                        st.pyplot(fig)
+
+                    with col_graph4:
+                        # Loan vs Income Ratio
+                        fig, ax = plt.subplots(figsize=(8, 6))
+
+                        loan_to_income = (loan_amount / income) * 100
+
+                        data = [loan_to_income, 100 - loan_to_income]
+                        labels = [f"Loan Amount\n{loan_to_income:.1f}%", f"Other Income\n{100-loan_to_income:.1f}%"]
+                        colors = ["#003366", "#e8f5e9"]
+                        explode = (0.05, 0)
+
+                        wedges, texts, autotexts = ax.pie(data, labels=labels, colors=colors, autopct="%1.1f%%",
+                                                          startangle=90, explode=explode, textprops={"fontsize": 10, "fontweight": "bold"},
+                                                          wedgeprops={"edgecolor": "black", "linewidth": 2})
+
+                        ax.set_title("Loan-to-Income Ratio", fontweight="bold", fontsize=12)
+                        plt.tight_layout()
+                        st.pyplot(fig)
 
                     # Store result in session
                     if 'results' not in st.session_state:
@@ -438,7 +569,7 @@ with tab3:
     # Average risk score
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Average Risk Score", f"{stats['average_risk_score']}/100")
+        st.metric("Average Risk Score", f"{stats['average_risk_score']}/1000")
     with col2:
         approval_rate = (stats['approved'] / stats['total_processed'] * 100) if stats['total_processed'] > 0 else 0
         st.metric("Approval Rate", f"{approval_rate:.1f}%")
@@ -446,15 +577,16 @@ with tab3:
     st.divider()
 
     # Risk score distribution from database
-    st.subheader("📈 Risk Score Distribution")
+    st.subheader("📈 Risk Score Distribution (0-1000 Scale)")
     risk_scores = get_risk_scores()
     if risk_scores:
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots()
-        ax.hist(risk_scores, bins=10, color='steelblue', edgecolor='black')
-        ax.set_xlabel("Risk Score")
-        ax.set_ylabel("Frequency")
-        ax.set_title("Distribution of Risk Scores (All Time)")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.hist(risk_scores, bins=10, color='steelblue', edgecolor='black', linewidth=1.5)
+        ax.set_xlabel("Risk Score (0-1000)", fontweight="bold")
+        ax.set_ylabel("Frequency", fontweight="bold")
+        ax.set_title("Distribution of Risk Scores (All Time)", fontweight="bold")
+        ax.grid(axis="y", alpha=0.3)
         st.pyplot(fig)
     else:
         st.info("No data yet. Submit applications to see charts.")
