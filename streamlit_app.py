@@ -242,7 +242,7 @@ with tab1:
         existing_liabilities = land_value + car_value + other_value
 
         # Display total
-        st.metric("Total Liabilities", f"${existing_liabilities:,.2f}")
+        st.metric("Total Liabilities", f"₹{existing_liabilities:,.2f}")
 
     st.markdown("#### 📍 Location")
     location = st.selectbox("Location", ["India"], index=0)
