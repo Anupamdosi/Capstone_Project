@@ -1,0 +1,57 @@
+[
+  {
+    "applicant_id": "APP-001",
+    "age": 35,
+    "income": 75000,
+    "employment_type": "Employed",
+    "credit_score": 720,
+    "loan_amount": 250000,
+    "tenure_months": 180,
+    "existing_liabilities": 50000,
+    "location": "New York"
+  },
+  {
+    "applicant_id": "APP-002",
+    "age": 45,
+    "income": 120000,
+    "employment_type": "Employed",
+    "credit_score": 780,
+    "loan_amount": 400000,
+    "tenure_months": 240,
+    "existing_liabilities": 80000,
+    "location": "San Francisco"
+  },
+  {
+    "applicant_id": "APP-003",
+    "age": 28,
+    "income": 50000,
+    "employment_type": "Self-employed",
+    "credit_score": 650,
+    "loan_amount": 150000,
+    "tenure_months": 120,
+    "existing_liabilities": 30000,
+    "location": "Austin"
+  },
+  {
+    "applicant_id": "APP-004",
+    "age": 55,
+    "income": 85000,
+    "employment_type": "Employed",
+    "credit_score": 580,
+    "loan_amount": 200000,
+    "tenure_months": 240,
+    "existing_liabilities": 100000,
+    "location": "Chicago"
+  },
+  {
+    "applicant_id": "APP-005",
+    "age": 32,
+    "income": 95000,
+    "employment_type": "Business Owner",
+    "credit_score": 740,
+    "loan_amount": 350000,
+    "tenure_months": 180,
+    "existing_liabilities": 60000,
+    "location": "Seattle"
+  }
+]

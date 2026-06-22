@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - .:/app
+    command: python3 fastapi_service.py
+
+  streamlit:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - .:/app
+    depends_on:
+      - fastapi
+    command: streamlit run streamlit_app.py
+
+volumes:
+  data:
