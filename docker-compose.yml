@@ -2,26 +2,48 @@ version: '3.8'
 
 services:
   fastapi:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PYTHONUNBUFFERED=1
+      - API_PORT=8000
     volumes:
-      - .:/app
-    command: python3 fastapi_service.py
+      - ./loan_applications.db:/app/loan_applications.db
+    depends_on:
+      - db
+    networks:
+      - loan-network
+    restart: unless-stopped
 
   streamlit:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8501:8501"
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    volumes:
-      - .:/app
+      - PYTHONUNBUFFERED=1
+      - STREAMLIT_SERVER_PORT=8501
+      - API_URL=http://fastapi:8000
     depends_on:
       - fastapi
-    command: streamlit run streamlit_app.py
+    networks:
+      - loan-network
+    restart: unless-stopped
+
+  db:
+    image: sqlite:latest
+    volumes:
+      - db_data:/data
+    networks:
+      - loan-network
 
 volumes:
-  data:
+  db_data:
+
+networks:
+  loan-network:
+    driver: bridge
