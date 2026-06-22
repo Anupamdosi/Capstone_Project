@@ -1,4 +1,4 @@
-"""Streamlit chatbot UI for loan approval system."""
+"""Streamlit chatbot UI for TD Bank loan approval system."""
 
 import streamlit as st
 import requests
@@ -6,82 +6,198 @@ import json
 from datetime import datetime
 from database import get_statistics, get_decision_distribution, get_risk_scores, get_all_applications, export_to_json, export_to_csv
 
-st.set_page_config(page_title="Agentic AI Loan Approval", layout="wide")
+st.set_page_config(page_title="TD Bank - Agentic Loan Approval", layout="wide")
 
-# Custom styling
+# Custom styling with TD Bank theme
 st.markdown("""
 <style>
+    /* Watermark */
+    body::before {
+        content: "TD BANK";
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 120px;
+        color: rgba(0, 51, 102, 0.08);
+        font-weight: bold;
+        z-index: -1;
+        white-space: nowrap;
+    }
+
     .main-header {
         text-align: center;
-        color: #1f77b4;
-        margin-bottom: 30px;
+        color: #003366;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+        font-weight: 900;
+        border-bottom: 4px solid #003366;
+        padding-bottom: 20px;
     }
+
+    .bank-subtitle {
+        text-align: center;
+        color: #666666;
+        font-size: 1.1em;
+        margin-bottom: 20px;
+        font-style: italic;
+    }
+
+    .user-badge {
+        background: linear-gradient(135deg, #003366 0%, #004d80 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: bold;
+        border: 2px solid #003366;
+    }
+
     .status-approved {
-        color: #28a745;
+        color: #2d5016;
         font-weight: bold;
+        font-size: 1.1em;
     }
+
     .status-rejected {
-        color: #dc3545;
+        color: #8B0000;
         font-weight: bold;
+        font-size: 1.1em;
     }
+
     .status-review {
-        color: #ffc107;
+        color: #ff8c00;
         font-weight: bold;
+        font-size: 1.1em;
     }
+
     .result-box {
-        border-radius: 10px;
-        padding: 20px;
-        margin: 10px 0;
-        border-left: 5px solid;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 15px 0;
+        border: 3px solid;
+        box-shadow: 0 4px 8px rgba(0, 51, 102, 0.2);
+        background: white;
     }
+
     .approved-box {
-        background-color: #d4edda;
-        border-color: #28a745;
+        background-color: #e8f5e9;
+        border-color: #2d5016;
     }
+
     .rejected-box {
-        background-color: #f8d7da;
-        border-color: #dc3545;
+        background-color: #ffebee;
+        border-color: #8B0000;
     }
+
     .review-box {
-        background-color: #fff3cd;
-        border-color: #ffc107;
+        background-color: #fff8e1;
+        border-color: #ff8c00;
+    }
+
+    .form-container {
+        border: 2px solid #003366;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #f9fafb;
+        margin-bottom: 20px;
+    }
+
+    .section-header {
+        color: #003366;
+        border-left: 5px solid #2d5016;
+        padding-left: 15px;
+        font-weight: bold;
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+    .footer-watermark {
+        text-align: center;
+        color: #999999;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 2px solid #e0e0e0;
+        font-size: 0.9em;
+    }
+
+    .tab-header {
+        color: #003366;
+        font-weight: bold;
+        border-bottom: 3px solid #003366;
+        padding-bottom: 10px;
+    }
+
+    .metric-card {
+        border: 2px solid #003366;
+        border-radius: 8px;
+        padding: 15px;
+        background-color: #f0f4f8;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 class='main-header'>🏦 Agentic AI Intelligent Loan Approval System</h1>", unsafe_allow_html=True)
+# TD Bank Header with user info
+col1, col2 = st.columns([4, 1])
+with col1:
+    st.markdown("<div class='main-header'>🏦 TD BANK</div>", unsafe_allow_html=True)
+    st.markdown("<div class='bank-subtitle'>Intelligent Loan Approval System - Powered by AI</div>", unsafe_allow_html=True)
+with col2:
+    st.markdown("<div class='user-badge'>👤 User: Anupam</div>", unsafe_allow_html=True)
 
 # Sidebar for configuration
 with st.sidebar:
-    st.header("Configuration")
+    st.markdown("---")
+    st.markdown("### ⚙️ Configuration")
+    st.markdown("---")
     api_url = st.text_input("API URL", value="http://localhost:8000")
-    st.divider()
-    st.info("Submit loan applications for AI-powered analysis and approval decisions.")
+    st.markdown("---")
+    st.markdown("""
+    <div style='background-color: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #2d5016;'>
+    <strong style='color: #2d5016;'>✓ Success Indicator:</strong> Light Green
+    <br><strong style='color: #8B0000;'>✗ Failure Indicator:</strong> Blood Red
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("---")
+    st.info("💼 Submit loan applications for AI-powered analysis and approval decisions.")
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["📝 Single Application", "📊 Batch Processing", "📈 Analytics"])
+tab1, tab2, tab3 = st.tabs(["📝 Single Application", "📊 Batch Processing", "📈 Analytics Dashboard"])
 
 with tab1:
-    st.subheader("Submit Loan Application")
+    st.markdown("<div class='section-header'>📝 Loan Application Form</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='form-container'>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
+        st.markdown("#### 📋 Applicant Information")
         applicant_id = st.text_input("Applicant ID", value="APP-001")
         age = st.slider("Age", min_value=18, max_value=80, value=35)
         income = st.number_input("Annual Income ($)", min_value=20000.0, value=75000.0, step=5000.0)
         employment_type = st.selectbox("Employment Type", ["Employed", "Self-employed", "Business Owner", "Retired"])
 
     with col2:
+        st.markdown("#### 💰 Loan Details")
         credit_score = st.slider("Credit Score", min_value=300, max_value=850, value=720)
         loan_amount = st.number_input("Loan Amount ($)", min_value=10000.0, value=250000.0, step=10000.0)
         tenure_months = st.slider("Tenure (months)", min_value=6, max_value=360, value=180)
         existing_liabilities = st.number_input("Existing Liabilities ($)", min_value=0.0, value=50000.0, step=5000.0)
 
+    st.markdown("#### 📍 Location")
     location = st.text_input("Location", value="New York")
 
-    if st.button("🚀 Analyze Application", use_container_width=True):
-        with st.spinner("Analyzing application..."):
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Styled button
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        analyze_button = st.button("🚀 ANALYZE APPLICATION", use_container_width=True, key="analyze_btn")
+
+    if analyze_button:
+        with st.spinner("🔄 Analyzing application..."):
             try:
                 payload = {
                     "applicant_id": applicant_id,
@@ -104,26 +220,33 @@ with tab1:
                 if response.status_code == 200:
                     result = response.json()
 
-                    # Determine styling
+                    # Determine styling - Light Green for Success, Blood Red for Failure
                     decision = result["decision"]
                     if decision == "Approved":
                         box_class = "approved-box"
                         status_class = "status-approved"
+                        decision_icon = "✅"
                     elif decision == "Rejected":
                         box_class = "rejected-box"
                         status_class = "status-rejected"
+                        decision_icon = "❌"
                     else:
                         box_class = "review-box"
                         status_class = "status-review"
+                        decision_icon = "⚠️"
 
                     st.markdown(f"""
                     <div class='result-box {box_class}'>
-                        <h3 style='margin-top: 0;'>Decision: <span class='{status_class}'>{decision}</span></h3>
-                        <p><strong>Risk Score:</strong> {result['risk_score']}/100</p>
-                        <p><strong>Confidence Level:</strong> {result['confidence_level']}</p>
-                        <p><strong>Case ID:</strong> {result['case_id']}</p>
-                        <p><strong>Timestamp:</strong> {result['timestamp']}</p>
-                        <p><strong>Explanation:</strong> {result['explanation']}</p>
+                        <h2 style='margin-top: 0; text-align: center;'>{decision_icon} <span class='{status_class}'>{decision}</span></h2>
+                        <hr style='border: 2px solid currentColor;'>
+                        <table style='width: 100%;'>
+                            <tr><td><strong>📊 Risk Score:</strong></td><td>{result['risk_score']}/100</td></tr>
+                            <tr><td><strong>🎯 Confidence Level:</strong></td><td>{result['confidence_level']}</td></tr>
+                            <tr><td><strong>🆔 Case ID:</strong></td><td>{result['case_id']}</td></tr>
+                            <tr><td><strong>⏰ Timestamp:</strong></td><td>{result['timestamp']}</td></tr>
+                            <tr><td colspan='2'><strong>📝 Analysis:</strong></td></tr>
+                            <tr><td colspan='2'>{result['explanation']}</td></tr>
+                        </table>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -133,7 +256,7 @@ with tab1:
                     st.session_state.results.append(result)
 
                 else:
-                    st.error(f"API Error: {response.status_code} - {response.text}")
+                    st.error(f"❌ API Error: {response.status_code} - {response.text}")
 
             except requests.exceptions.ConnectionError:
                 st.error("❌ Cannot connect to API. Make sure FastAPI service is running on http://localhost:8000")
@@ -141,8 +264,12 @@ with tab1:
                 st.error(f"❌ Error: {str(e)}")
 
 with tab2:
-    st.subheader("Batch Processing")
-    st.info("Upload a JSON file with multiple loan applications for batch processing.")
+    st.markdown("<div class='section-header'>📦 Batch Processing</div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='background-color: #f0f4f8; padding: 15px; border-radius: 8px; border-left: 4px solid #003366; margin-bottom: 20px;'>
+    📤 Upload a JSON file with multiple loan applications for AI-powered batch analysis and approval.
+    </div>
+    """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader("Choose JSON file", type="json")
 
@@ -187,17 +314,41 @@ with tab2:
             st.error(f"Error processing file: {str(e)}")
 
 with tab3:
-    st.subheader("📊 Decision Analytics & History")
+    st.markdown("<div class='section-header'>📊 Decision Analytics & History</div>", unsafe_allow_html=True)
 
     # Get statistics from database
     stats = get_statistics()
 
-    # Summary metrics from database
+    # Summary metrics from database with TD Bank styling
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Processed", stats['total_processed'])
-    col2.metric("✅ Approved", stats['approved'])
-    col3.metric("❌ Rejected", stats['rejected'])
-    col4.metric("⚠️ Manual Review", stats['manual_review'])
+    with col1:
+        st.markdown("""
+        <div class='metric-card' style='text-align: center;'>
+        <div style='font-size: 2em; font-weight: bold; color: #003366;'>""" + str(stats['total_processed']) + """</div>
+        <div style='color: #666;'>Total Processed</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class='metric-card' style='text-align: center; background-color: #e8f5e9; border-color: #2d5016;'>
+        <div style='font-size: 2em; font-weight: bold; color: #2d5016;'>✅ {stats['approved']}</div>
+        <div style='color: #2d5016;'>Approved</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class='metric-card' style='text-align: center; background-color: #ffebee; border-color: #8B0000;'>
+        <div style='font-size: 2em; font-weight: bold; color: #8B0000;'>❌ {stats['rejected']}</div>
+        <div style='color: #8B0000;'>Rejected</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class='metric-card' style='text-align: center; background-color: #fff8e1; border-color: #ff8c00;'>
+        <div style='font-size: 2em; font-weight: bold; color: #ff8c00;'>⚠️ {stats['manual_review']}</div>
+        <div style='color: #ff8c00;'>Review</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.divider()
 
@@ -317,8 +468,10 @@ with tab3:
 # Footer
 st.divider()
 st.markdown("""
-<div style='text-align: center; color: #666; margin-top: 30px;'>
-    <p><strong>Agentic AI Loan Approval System</strong> | Powered by Claude & LangGraph</p>
-    <p>Multi-Agent Architecture with FastAPI & Streamlit</p>
+<div class='footer-watermark'>
+    <p style='font-size: 1.1em;'><strong>🏦 TD BANK - Intelligent Loan Approval System</strong></p>
+    <p>Powered by Claude AI & LangGraph | User: Anupam</p>
+    <p style='color: #999; font-size: 0.85em;'>✅ <span style='color: #2d5016;'>Light Green: Approved</span> | ❌ <span style='color: #8B0000;'>Blood Red: Rejected</span> | ⚠️ <span style='color: #ff8c00;'>Orange: Manual Review</span></p>
+    <p style='color: #aaa; font-size: 0.8em;'>© 2024 TD Bank. All rights reserved.</p>
 </div>
 """, unsafe_allow_html=True)
